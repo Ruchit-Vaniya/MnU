@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+/* ============================================================
+   MnU design tokens
+   ============================================================
+   Extended in Day 21 toward the earthy / soft-UI direction.
+
+   The pre-existing `brand-*` / `ink-*` / `cream-*` scales are kept with
+   their ORIGINAL values on purpose: 30+ files (including the entire
+   restaurant-admin side) already consume them, and Day 21's scope is
+   customer UI only. Retuning them in place would silently restyle the
+   admin app too. New earthy tokens are added alongside instead, and the
+   customer screens are migrated onto them.
+   ============================================================ */
+
+@theme {
+  /* ---- Legacy scales (admin + shared). Do not retune. ---- */
+  --color-brand-50: #fef6f0;
+  --color-brand-100: #fde8d9;
+  --color-brand-500: #e85d30;
+  --color-brand-600: #d4451f;
+
+  --color-ink-900: #1f1b16;
+  --color-ink-700: #3d372f;
+  --color-ink-400: #8a8072;
+  --color-ink-200: #d8d1c6;
+  --color-ink-100: #ede9e3;
+
+  --color-cream-100: #faf7f2;
+
+  --color-success-500: #2f6f4e;
+  --color-danger-500: #dc2626;
+
+  /* ---- Day 21: earthy / organic customer palette ---- */
+
+  /* Canvas — the warm page background behind every customer screen. */
+  --color-canvas: #f9f5eb;
+  --color-canvas-deep: #f2ecdd;
+
+  /* Surface — cards sit white on canvas for contrast and food clarity. */
+  --color-surface: #ffffff;
+  --color-surface-muted: #faf8f3;
+
+  /* Terracotta — the primary accent: add buttons, prices, active pills. */
+  --color-terracotta-50: #fdf1ed;
+  --color-terracotta-100: #f8ddd4;
+  --color-terracotta-400: #e8917a;
+  --color-terracotta-500: #e07a5f;
+  --color-terracotta-600: #c96147;
+
+  /* Sage — secondary accent: availability, quiet confirmations, tags. */
+  --color-sage-50: #f0f2e9;
+  --color-sage-100: #dfe4cf;
+  --color-sage-500: #556b2f;
+  --color-sage-600: #445626;
+
+  /* Night — the floating bottom navigation and high-contrast surfaces. */
+  --color-night: #111111;
+  --color-night-soft: #2a2a2a;
+
+  /* Text on the earthy canvas. */
+  --color-carbon-900: #111111;
+  --color-carbon-700: #3a3733;
+  --color-carbon-400: #8b8579;
+  --color-hairline: #ece5d6;
+
+  /* ---- Radii: soft-UI scale (20-28px on cards) ---- */
+  --radius-soft: 1.25rem;   /* 20px — small cards, inputs */
+  --radius-card: 1.5rem;    /* 24px — standard product card */
+  --radius-hero: 1.75rem;   /* 28px — hero / featured surfaces */
+}
+
+/* ============================================================
+   Soft-UI shadows
+   ============================================================
+   Deliberately restrained. True neumorphism (matched light + dark
+   inset/outset on a same-colour surface) tanks contrast and is an
+   accessibility problem on a menu people read in dim restaurants — so
+   this uses soft *elevation* on white cards over a warm canvas, which
+   reads as the same aesthetic while staying legible.
+   ============================================================ */
+@utility shadow-soft {
+  box-shadow:
+    0 1px 2px rgba(60, 46, 28, 0.04),
+    0 8px 20px -8px rgba(60, 46, 28, 0.1);
+}
+
+@utility shadow-soft-lg {
+  box-shadow:
+    0 2px 4px rgba(60, 46, 28, 0.05),
+    0 18px 36px -14px rgba(60, 46, 28, 0.16);
+}
+
+/* The floating dark bottom nav. */
+@utility shadow-nav {
+  box-shadow: 0 10px 30px -6px rgba(17, 17, 17, 0.35);
+}
+
+/* Lifts a transparent-PNG food image off the card without a box shadow
+   (which would draw the image's rectangular bounds instead of its
+   silhouette). */
+@utility drop-food {
+  filter: drop-shadow(0 10px 14px rgba(60, 46, 28, 0.22));
+}
+
+/* Horizontal scrollers: hide the bar, keep the scrolling. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body {
+  @apply bg-cream-100 text-ink-900 antialiased;
+}
+
+/* Customer screens opt into the earthy canvas via this class rather than
+   changing `body` globally, which would also repaint the admin app. */
+.mnu-customer {
+  background-color: var(--color-canvas);
+  color: var(--color-carbon-900);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================================
+   Day 23 — live UI motion primitives
+   ============================================================
+   Deliberately plain CSS keyframes/utilities, not a library: no
+   animation package was already installed (checked package.json before
+   starting), and the task is explicit that one shouldn't be added for
+   this. Every customer screen composes from these same few primitives
+   so the app reads as one consistent motion language rather than each
+   screen inventing its own. Kept short (150-320ms) and cheap
+   (opacity/transform only — never animating layout-affecting
+   properties), per the task's own performance guidance.
+   ============================================================ */
+
+@keyframes mnu-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes mnu-fade-slide-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes mnu-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* One-shot "that registered" pulse — used on the quantity control the
+   instant an item is added, and on the cart badge when its count
+   changes. Not a loop: it plays once and settles, so it reads as
+   acknowledgement rather than a distracting, continuous bounce. */
+@keyframes mnu-pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+@utility animate-fade-in {
+  animation: mnu-fade-in 220ms ease-out both;
+}
+
+@utility animate-fade-slide-up {
+  animation: mnu-fade-slide-up 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@utility animate-scale-in {
+  animation: mnu-scale-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@utility animate-pop {
+  animation: mnu-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* A menu/diner may have "reduce motion" on for real accessibility
+   reasons, not just preference — every animation above is neutralised
+   to an instant, final-state snap rather than skipped outright (which
+   would leave staggered content at opacity:0). */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-fade-slide-up,
+  .animate-scale-in,
+  .animate-pop {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+  }
+}
